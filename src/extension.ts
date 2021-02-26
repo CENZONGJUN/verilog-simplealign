@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { sign } from 'crypto';
 import * as vscode from 'vscode';
 
 function parseBound(bound: string): string {
@@ -16,17 +17,31 @@ function parseLine(line: string): string {
 
 	// regular expression to determin type
 	// One can easily test them with VSCode: ctrl+f, alt+r
-	let reg_port = /^\s*input|output|inout/;
-	let reg_declaration = /^\s*wire|reg|integer|localparam|parameter/;
+	let reg_port = /^\s*(input|output|inout)/;
+	let reg_declaration = /^\s*(wire|reg|integer|localparam|parameter)/;
 	let reg_inscance = /^\s*\./;
 	
 	let new_line = line;
 
+	// extract comment
+	let comments = /(\/\/.*)?$/.exec(line)
+	if (comments) {
+		var line_no_comments = line.replace(comments[0], "")
+		var comment = comments[0]
+	}
+	else {
+		var line_no_comments = line
+		var comment = ""
+	}
+	
+	
+	//let comment = line.replace(/^(.*)(\/\/.*)?$/, '\$2')
+
 	if (reg_port.test(line)) {
 		// Is port 
 		// s1 original string
-		new_line = line.replace(/^\s*(input|output|inout)\s*(reg|wire)?\s*(signed)?\s*(\[.*\])?\s*(\w*)\s*(,)?\s*(\/\/.*)?$/,
-			function (s1, output, reg, signed, bound, name, comma, comment) {
+		new_line = line_no_comments.replace(/^\s*(input|output|inout)\s*(reg|wire)?\s*(signed)?\s*(\[.*\])?\s*([^,;]*)\s*(,|;)?.*$/,
+			function (s1, output, reg, signed, bound, name, comma) {
 				output = output.padEnd(7);
 
 				if (reg != undefined)
@@ -44,7 +59,7 @@ function parseLine(line: string): string {
 				else
 					bound = "".padEnd(17)
 				
-				name = name.padEnd(27)
+				name = name.trim().padEnd(27)
 
 				if (comma == undefined)
 					comma = " "
@@ -60,8 +75,8 @@ function parseLine(line: string): string {
 	else if (reg_declaration.test(line)) {
 		// Is declaration
 		// s1 orignial string
-		new_line = line.replace(/^\s*(wire|reg|localparam)\s*(signed)?\s*(\[.*\])?\s*(.*);\s*(\/\/.*)?$/,
-			(s1, wire, signed, bound, name, comment) => {
+		new_line = line_no_comments.replace(/^\s*(wire|reg|localparam)\s*(signed)?\s*(\[.*\])?\s*(.*)\s*;.*$/,
+			(s1, wire, signed, bound, name) => {
 				wire = wire.padEnd(16);
 				if (signed != undefined)
 					signed = signed.padEnd(7)
@@ -73,7 +88,7 @@ function parseLine(line: string): string {
 				else
 					bound = "".padEnd(17)
 				
-				name = name.padEnd(27)
+				name = name.trim().padEnd(27)
 					
 				if (comment == undefined)
 					comment = ""
@@ -85,10 +100,14 @@ function parseLine(line: string): string {
 	}
 	else if (reg_inscance.test(line)) {
 		// Is instance
-		new_line = line.replace(/^\s*\.\s*(\w*)\s*\(\s*(\S.*\S)\s*\)\s*(,)?(\/\/.*)?$/,
-			(s1, port_name, signal_name, comma,comment) => {
+		new_line = line_no_comments.replace(/^\s*\.\s*(\w*)\s*\((.*)\)\s*(,)?.*$/,
+			(s1, port_name, signal_name, comma) => {
 				port_name = port_name.padEnd(34)
-				signal_name = signal_name.padEnd(26)
+				if (signal_name)
+					signal_name = signal_name.trim().padEnd(26)
+				else
+					signal_name = "".padEnd(26)
+
 				if (comma == undefined)
 					comma = " "
 				if (comment == undefined)
@@ -97,6 +116,14 @@ function parseLine(line: string): string {
 				
 			}
 		);
+	}
+	else if (line_no_comments.trim().length > 0) {
+		// align the comments
+		line_no_comments = line_no_comments.replace(/\t/g, "".padEnd(4))
+		line_no_comments = line_no_comments.trimEnd()
+		if (comment.length > 0)
+			line_no_comments = line_no_comments.padEnd(68)
+		new_line = line_no_comments + comment
 	}
 
 
