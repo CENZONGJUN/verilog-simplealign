@@ -1,7 +1,9 @@
 {
-	"name": "verilog-stupidalign",
-	"displayName": "verilog-stupidalign",
+	"name": "verilog-simplealign",
+	"displayName": "verilog-simplealign",
 	"description": "",
+	"publisher": "zzbear",
+	"repository": "https://github.com/CENZONGJUN/verilog-simplealign.git",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.53.0"
@@ -10,17 +12,25 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:verilog-stupidalign.helloWorld"
+		"onCommand:verilog-simplealign.simple_align"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "verilog-stupidalign.helloWorld",
-				"title": "Hello World"
+				"command": "verilog-simplealign.simple_align",
+				"title": "simple Align"
+			}
+		],
+		"keybindings" : [
+			{
+				"command": "verilog-simplealign.simple_align",
+				"key": "ctrl+l",
+				"when": "editorTextFocus"
 			}
 		]
 	},
+
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
