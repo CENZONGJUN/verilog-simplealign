@@ -40,7 +40,7 @@ function parseLine(line: string): string {
 	if (reg_port.test(line)) {
 		// Is port 
 		// s1 original string
-		new_line = line_no_comments.replace(/^\s*(input|output|inout)\s*(reg|wire)?\s*(signed)?\s*(\[.*\])?\s*([^,;]*)\s*(,|;)?.*$/,
+		new_line = line_no_comments.replace(/^\s*(input|output|inout)\s*(reg|wire)?\s*(signed)?\s*(\[.*\])?\s*([^;]*\b)\s*(,|;)?.*$/,
 			function (s1, output, reg, signed, bound, name, comma) {
 				output = output.padEnd(7);
 
