@@ -17,8 +17,8 @@ function parseLine(line: string): string {
 
 	// regular expression to determin type
 	// One can easily test them with VSCode: ctrl+f, alt+r
-	let reg_port = /^\s*(input|output|inout)/;
-	let reg_declaration = /^\s*(wire|reg|integer|localparam|parameter)/;
+	let reg_port = /^\s*(input|output|inout|parameter)/;
+	let reg_declaration = /^\s*(wire|reg|integer|localparam)/;
 	let reg_inscance = /^\s*\./;
 	
 	let new_line = line;
@@ -40,14 +40,27 @@ function parseLine(line: string): string {
 	if (reg_port.test(line)) {
 		// Is port 
 		// s1 original string
-		new_line = line_no_comments.replace(/^\s*(input|output|inout)\s*(reg|wire)?\s*(signed)?\s*(\[.*\])?\s*([^;]*\b)\s*(,|;)?.*$/,
+		new_line = line_no_comments.replace(/^\s*(input|output|inout|parameter)\s*(reg|wire)?\s*(signed)?\s*(\[.*\])?\s*([^;]*\b)\s*(,|;)?.*$/,
 			function (s1, output, reg, signed, bound, name, comma) {
-				output = output.padEnd(7);
+				let output_width = 7
+				let reg_width = 5
 
-				if (reg != undefined)
-					reg = reg.padEnd(5);
-				else
-					reg = "".padEnd(5);
+				// align paremeter with output reg
+				// paremeter..  
+				// output reg.
+				if (/parameter/.test(output)) {
+					output = output.padEnd(output_width + reg_width)
+					reg = ""
+				}
+				else {
+					output = output.padEnd(output_width);
+					if (reg != undefined)
+						reg = reg.padEnd(reg_width);
+					else
+						reg = "".padEnd(reg_width);
+				}
+
+
 				
 				if (signed != undefined)
 					signed = signed.padEnd(7)
@@ -68,7 +81,7 @@ function parseLine(line: string): string {
 					comment = ""
 
 				return "".padEnd(4) + output + reg + signed + bound + name + comma + comment;
-				//    output reg  signed [   7:0] dout                      ,//
+				//....output.reg..signed.[...7:0].dout....................,//
 			}
 		);
 	}
